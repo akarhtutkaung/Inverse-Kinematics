@@ -4,21 +4,27 @@ void setup() {
 }
 
 //Root
-Vector2 root = new Vector2(0,0);
+Vector2 rootM = new Vector2(200,30);
+Vector2 rootL = new Vector2(rootM.x, rootM.y + 20);
+Vector2 rootR = new Vector2(rootM.x + 60, rootM.y + 20);
 
 //Upper Arm
 float l0 = 60; 
-float a0 = 0.3; //Shoulder joint
+float a0L = 0.3; //Left - Shoulder joint
+float a0R = 0.3; //Right - Shoulder joint
 
 //Lower Arm
 float l1 = 90;
-float a1 = 0.3; //Elbow joint
+float a1L = 0.3; //Left - Elbow joint
+float a1R = 0.3; //Right - Elbow joint
 
 //Hand
 float l2 = 30;
-float a2 = 0.3; //Wrist joint
+float a2L = 0.3; //Left - Wrist joint
+float a2R = 0.3; //Right - Wrist joint
 
-Vector2 start_l1,start_l2,endPoint;
+Vector2 start_l1_L,start_l2_L,endPoint_L;
+Vector2 start_l1_R,start_l2_R,endPoint_R;
 
 void solve() {
   Vector2 goal = new Vector2(mouseX, mouseY);
@@ -26,89 +32,171 @@ void solve() {
   Vector2 startToGoal, startToEndEffector;
   float dotProd, angleDiff;
   
+  // =================================================================================
   //Update wrist joint
-  startToGoal = goal.minus(start_l2);
-  startToEndEffector = endPoint.minus(start_l2);
+  // Right - wrist
+  startToGoal = goal.minus(start_l2_R);
+  startToEndEffector = endPoint_R.minus(start_l2_R);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
   angleDiff = acos(dotProd);
   if (cross(startToGoal,startToEndEffector) < 0)
-    a2 += angleDiff;
+    a2R += angleDiff;
   else
-    a2 -= angleDiff;
+    a2R -= angleDiff;
   /*TODO: Wrist joint limits here*/
-  if(a2>1.57079633){
-  a2 = 1.57079633;
-} else if (a2<-1.57079633){
-  a2 = -1.57079633;
+  if(a2R>1.57079633){
+  a2R = 1.57079633;
+} else if (a2R<-1.57079633){
+  a2R = -1.57079633;
 }
   fk(); //Update link positions with fk (e.g. end effector changed)
   
-  
-  
-  //Update elbow joint
-  startToGoal = goal.minus(start_l1);
-  startToEndEffector = endPoint.minus(start_l1);
+  // Left - wrist
+  startToGoal = goal.minus(start_l2_L);
+  startToEndEffector = endPoint_L.minus(start_l2_L);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
-  dotProd = clamp(dotProd,-1,1);
+  dotProd = clamp(dotProd, -1,1);
   angleDiff = acos(dotProd);
   if (cross(startToGoal,startToEndEffector) < 0)
-  a1 += angleDiff;
+  a2L += angleDiff;
   else
-  a1 -= angleDiff;
+  a2L -= angleDiff;
+  /*TODO: Wrist joint limits here*/
+  if (a2L > 1.57079633) {
+    a2L = 1.57079633;
+  } else if (a2L <-  1.57079633) {
+    a2L = -1.57079633;
+  }
   fk(); //Update link positions with fk (e.g. end effector changed)
+  // =================================================================================
   
-  
-  //Update shoulder joint
-  startToGoal = goal.minus(root);
-  if (startToGoal.length() < .0001) return;
-  startToEndEffector = endPoint.minus(root);
+
+  // =================================================================================
+  //Update elbow joint
+  // Right - elbow
+  startToGoal = goal.minus(start_l1_R);
+  startToEndEffector = endPoint_R.minus(start_l1_R);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
-  dotProd = clamp(dotProd,-1,1);
+  dotProd = clamp(dotProd, -1,1);
   angleDiff = acos(dotProd);
   if (cross(startToGoal,startToEndEffector) < 0)
-  a0 += angleDiff;
+    a1R += angleDiff;
   else
-  a0 -= angleDiff;
+    a1R -= angleDiff;
+  fk(); //Update link positions with fk (e.g. end effector changed)
+
+  //Left - elbow
+  startToGoal = goal.minus(start_l1_L);
+  startToEndEffector = endPoint_L.minus(start_l1_L);
+  dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
+  dotProd = clamp(dotProd, -1,1);
+  angleDiff = acos(dotProd);
+  if (cross(startToGoal,startToEndEffector) < 0)
+    a1L += angleDiff;
+  else
+    a1L -= angleDiff;
+  fk(); //Update link positions with fk (e.g. end effector changed)
+  // =================================================================================
+
+  
+  // =================================================================================
+  //Update shoulder joint
+  // Right - shoulder
+  startToGoal = goal.minus(rootR);
+  if (startToGoal.length() <.0001) return;
+  startToEndEffector = endPoint_R.minus(rootR);
+  dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
+  dotProd = clamp(dotProd, -1,1);
+  angleDiff = acos(dotProd);
+  if (cross(startToGoal,startToEndEffector) < 0)
+    a0R += angleDiff;
+  else
+    a0R -= angleDiff;
   /*TODO: Shoulder joint limits here*/
   fk(); //Update link positions with fk (e.g. end effector changed)
+
+  // Left - shoulder
+  startToGoal = goal.minus(rootL);
+  if (startToGoal.length() <.0001) return;
+  startToEndEffector = endPoint_L.minus(rootL);
+  dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
+  dotProd = clamp(dotProd, -1,1);
+  angleDiff = acos(dotProd);
+  if (cross(startToGoal,startToEndEffector) < 0)
+    a0L += angleDiff;
+  else
+    a0L -= angleDiff;
+  /*TODO: Shoulder joint limits here*/
+  fk(); //Update link positions with fk (e.g. end effector changed)
+  // =================================================================================
   
-  println("Angle 0:",a0,"Angle 1:",a1,"Angle 2:",a2);
-}
-
-void fk() {
-  start_l1 = new Vector2(cos(a0) * l0,sin(a0) * l0).plus(root);
-  start_l2 = new Vector2(cos(a0 + a1) * l1,sin(a0 + a1) * l1).plus(start_l1);
-  endPoint = new Vector2(cos(a0 + a1 + a2) * l2,sin(a0 + a1 + a2) * l2).plus(start_l2);
-}
-
-float armW = 20;
-void draw() {
+  println("Angle 0:",a0R,"Angle 1:",a1R,"Angle 2:",a2R);
+  }
+  
+  void fk() {
+  // Right hand
+  start_l1_R = new Vector2(cos(a0R) * l0,sin(a0R) * l0).plus(rootR);
+  start_l2_R = new Vector2(cos(a0R + a1R) * l1,sin(a0R + a1R) * l1).plus(start_l1_R);
+  endPoint_R = new Vector2(cos(a0R + a1R + a2R) * l2,sin(a0R + a1R + a2R) * l2).plus(start_l2_R);
+  // Left hand
+  start_l1_L = new Vector2(cos(a0L) * l0,sin(a0L) * l0).plus(rootL);
+  start_l2_L = new Vector2(cos(a0L + a1L) * l1,sin(a0L + a1L) * l1).plus(start_l1_L);
+  endPoint_L = new Vector2(cos(a0L + a1L + a2L) * l2,sin(a0L + a1L + a2L) * l2).plus(start_l2_L);
+  }
+  
+  float armW = 20;
+  void draw() {
   fk();
   solve();
   
   background(250,250,250);
   
-  // shoulder
   fill(255, 219, 172);
+  
+  // body
   pushMatrix();
-  translate(root.x,root.y);
-  rotate(a0);
+  translate(rootM.x,rootM.y);
+  rect(0, 0, 60, 200, 28);
+  popMatrix();
+  
+  // right shoulder
+  pushMatrix();
+  translate(rootR.x, rootR.y);
+  rotate(a0R);
+  rect(0, -armW / 3, l0, armW);
+  popMatrix();
+  // left shoulder
+  pushMatrix();
+  translate(rootL.x, rootL.y);
+  rotate(a0L);
   rect(0, -armW / 3, l0, armW);
   popMatrix();
   
-  // elbow
+  // right elbow
   pushMatrix();
-  translate(start_l1.x,start_l1.y);
-  rotate(a0 + a1);
+  translate(start_l1_R.x,start_l1_R.y);
+  rotate(a0R + a1R);
+  rect(0, -armW / 2, l1, armW);
+  popMatrix();
+  // left elbow
+  pushMatrix();
+  translate(start_l1_L.x,start_l1_L.y);
+  rotate(a0L + a1L);
   rect(0, -armW / 2, l1, armW);
   popMatrix();
   
-  // wrist
+  // right wrist
   pushMatrix();
-  translate(start_l2.x,start_l2.y);
-  rotate(a0 + a1 + a2);
+  translate(start_l2_R.x,start_l2_R.y);
+  rotate(a0R + a1R + a2R);
+  rect(0, -armW / 2, l2, armW);
+  popMatrix();
+  // left wrist
+  pushMatrix();
+  translate(start_l2_L.x,start_l2_L.y);
+  rotate(a0L + a1L + a2L);
   rect(0, -armW / 2, l2, armW);
   popMatrix();
   
-}
+  }
