@@ -8,6 +8,11 @@ Vector2 rootM = new Vector2(200,30);
 Vector2 rootL = new Vector2(rootM.x, rootM.y + 20);
 Vector2 rootR = new Vector2(rootM.x + 60, rootM.y + 20);
 
+void setLeftRightRoot(){
+  rootL = new Vector2(rootM.x, rootM.y + 20);
+  rootR = new Vector2(rootM.x + 60, rootM.y + 20);
+}
+
 //Upper Arm
 float l0 = 60; 
 float a0L = 0.3; //Left - Shoulder joint
@@ -200,3 +205,22 @@ void solve() {
   popMatrix();
   
   }
+
+void keyPressed(){
+  if (keyCode == RIGHT){
+    rootM.x += 10;
+    setLeftRightRoot();
+  }
+  if (keyCode == LEFT){
+    rootM.x -= 10;
+    setLeftRightRoot();
+  }
+  if (keyCode == UP){
+    rootM.y -= 10;
+    setLeftRightRoot();
+  }
+  if (keyCode == DOWN){
+    rootM.y += 10;
+    setLeftRightRoot();
+  }
+}
