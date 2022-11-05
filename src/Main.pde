@@ -8,6 +8,10 @@ Vector2 rootM = new Vector2(200,30);
 Vector2 rootL = new Vector2(rootM.x, rootM.y + 20);
 Vector2 rootR = new Vector2(rootM.x + 60, rootM.y + 20);
 
+
+float cosTheta = cos(radians(45)); // x
+float sinTheta = sin(radians(45)); // y
+
 void setLeftRightRoot(){
   rootL = new Vector2(rootM.x, rootM.y + 20);
   rootR = new Vector2(rootM.x + 60, rootM.y + 20);
@@ -154,6 +158,7 @@ void solve() {
   void draw() {
   fk();
   solve();
+  handleArrowKeys(1.0/frameRate);
   
   background(250,250,250);
   
@@ -205,22 +210,49 @@ void solve() {
   popMatrix();
   
   }
+float obstacleSpeed = 300;
 
-void keyPressed(){
-  if (keyCode == RIGHT){
-    rootM.x += 10;
-    setLeftRightRoot();
+void handleArrowKeys(float dt){
+  Vector2 obstacleVel = new Vector2(0, 0);
+  if (leftPressed) obstacleVel = new Vector2(-obstacleSpeed, 0);
+  else if (rightPressed) obstacleVel = new Vector2(obstacleSpeed, 0);
+  else if (upPressed) obstacleVel = new Vector2(0, -obstacleSpeed);
+  else if (downPressed) obstacleVel = new Vector2(0, obstacleSpeed);
+
+  if (downPressed && leftPressed) obstacleVel = new Vector2(-obstacleSpeed * cosTheta, obstacleSpeed * sinTheta);
+  else if (downPressed && rightPressed) obstacleVel = new Vector2(obstacleSpeed * cosTheta, obstacleSpeed * sinTheta);
+  else if (upPressed && leftPressed) obstacleVel = new Vector2(-obstacleSpeed * cosTheta, -obstacleSpeed * sinTheta);
+  else if (upPressed && rightPressed) obstacleVel = new Vector2(obstacleSpeed * cosTheta, -obstacleSpeed * sinTheta);
+
+  if (leftPressed && rightPressed) {
+    if (upPressed) obstacleVel = new Vector2(0, -obstacleSpeed);
+    else if (downPressed) obstacleVel = new Vector2(0, obstacleSpeed);
+    else obstacleVel = new Vector2(0, 0);
   }
-  if (keyCode == LEFT){
-    rootM.x -= 10;
-    setLeftRightRoot();
+  if (upPressed && downPressed) {
+    if (leftPressed) obstacleVel = new Vector2(-obstacleSpeed, 0);
+    else if (rightPressed) obstacleVel = new Vector2(obstacleSpeed, 0);
+    else obstacleVel = new Vector2(0, 0);
   }
-  if (keyCode == UP){
-    rootM.y -= 10;
-    setLeftRightRoot();
-  }
-  if (keyCode == DOWN){
-    rootM.y += 10;
-    setLeftRightRoot();
-  }
+
+  if (upPressed && downPressed && leftPressed && rightPressed) obstacleVel = new Vector2(0, 0);
+  
+  rootM.x += obstacleVel.x * dt;
+  rootM.y += obstacleVel.y * dt;
+  setLeftRightRoot();
+}
+
+boolean leftPressed, rightPressed, upPressed, downPressed, shiftPressed;
+void keyPressed() {
+  if (keyCode == LEFT) leftPressed = true;
+  if (keyCode == RIGHT) rightPressed = true;
+  if (keyCode == UP) upPressed = true;
+  if (keyCode == DOWN) downPressed = true;
+}
+
+void keyReleased() {
+  if (keyCode == LEFT) leftPressed = false;
+  if (keyCode == RIGHT) rightPressed = false;
+  if (keyCode == UP) upPressed = false;
+  if (keyCode == DOWN) downPressed = false;
 }
