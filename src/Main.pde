@@ -1,8 +1,9 @@
 void setup() {
-  size(640,480);
+  size(649,480);
   surface.setTitle("Inverse Kinematics [CSCI 5611 Example]");
 }
-
+final int width = 640;
+final int height = 480;
 final float topArmYOffset = 20;
 final float botArmYOffset = 150;
 final float rightArmXOffset = 60;
@@ -56,19 +57,26 @@ Vector2 start_l1_RT,start_l2_RT,endPoint_RT;
 Vector2 start_l1_RB,start_l2_RB,endPoint_RB;
 
 //goals
-Vector2 leftGoal = new Vector2(mouseX, mouseY);
-Vector2 rightGoal = new Vector2(mouseX, mouseY);
-boolean trueMoveLeftElseMoveRight = true;
-boolean moveBoth = false;
+Vector2 leftGoalTop = new Vector2(0, rootM.y + topArmYOffset);
+Vector2 rightGoalTop = new Vector2(width, rootM.y + topArmYOffset);
+Vector2 leftGoalBot = new Vector2(rootM.x, height);
+Vector2 rightGoalBot = new Vector2(rootM.x + rightArmXOffset, height);
+int linksChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
 
 void solve() {
-  //Vector2 goal = new Vector2(mouseX, mouseY);
-  if (moveBoth){
-    leftGoal = rightGoal = new Vector2(mouseX, mouseY);
-  } else if (trueMoveLeftElseMoveRight){
-    leftGoal = new Vector2(mouseX, mouseY);
-  } else {
-    rightGoal = new Vector2(mouseX, mouseY);
+  switch (linksChoice) {
+    case(0): 
+      leftGoalTop = new Vector2(mouseX, mouseY);
+      break;
+    case(1): 
+      rightGoalTop = new Vector2(mouseX, mouseY);
+      break;
+    case(2): 
+      leftGoalBot = new Vector2(mouseX, mouseY);
+      break;
+    case(3): 
+      rightGoalBot = new Vector2(mouseX, mouseY);
+      break;
   }
   
   Vector2 startToGoal, startToEndEffector;
@@ -77,7 +85,7 @@ void solve() {
   // =================================================================================
   //Update wrist joint
   // Right Top - wrist
-  startToGoal = rightGoal.minus(start_l2_RT);
+  startToGoal = rightGoalTop.minus(start_l2_RT);
   startToEndEffector = endPoint_RT.minus(start_l2_RT);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -95,7 +103,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
   
   // Left Top - wrist
-  startToGoal = leftGoal.minus(start_l2_LT);
+  startToGoal = leftGoalTop.minus(start_l2_LT);
   startToEndEffector = endPoint_LT.minus(start_l2_LT);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -113,7 +121,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   // Right Bot - wrist
-  startToGoal = rightGoal.minus(start_l2_RB);
+  startToGoal = rightGoalBot.minus(start_l2_RB);
   startToEndEffector = endPoint_RB.minus(start_l2_RB);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -131,7 +139,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
   
   // Left Bot - wrist
-  startToGoal = leftGoal.minus(start_l2_LB);
+  startToGoal = leftGoalBot.minus(start_l2_LB);
   startToEndEffector = endPoint_LB.minus(start_l2_LB);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -153,7 +161,7 @@ void solve() {
   // =================================================================================
   //Update elbow joint
   // Right Top- elbow
-  startToGoal = rightGoal.minus(start_l1_RT);
+  startToGoal = rightGoalTop.minus(start_l1_RT);
   startToEndEffector = endPoint_RT.minus(start_l1_RT);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -165,7 +173,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   //Left Top - elbow
-  startToGoal = leftGoal.minus(start_l1_LT);
+  startToGoal = leftGoalTop.minus(start_l1_LT);
   startToEndEffector = endPoint_LT.minus(start_l1_LT);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -177,7 +185,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   // Right Bot - elbow
-  startToGoal = rightGoal.minus(start_l1_RB);
+  startToGoal = rightGoalBot.minus(start_l1_RB);
   startToEndEffector = endPoint_RB.minus(start_l1_RB);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -189,7 +197,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   //Left Bot - elbow
-  startToGoal = leftGoal.minus(start_l1_LB);
+  startToGoal = leftGoalBot.minus(start_l1_LB);
   startToEndEffector = endPoint_LB.minus(start_l1_LB);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
   dotProd = clamp(dotProd, -1,1);
@@ -205,7 +213,7 @@ void solve() {
   // =================================================================================
   //Update shoulder joint
   // Right - shoulder
-  startToGoal = rightGoal.minus(rootRT);
+  startToGoal = rightGoalTop.minus(rootRT);
   if (startToGoal.length() <.0001) return;
   startToEndEffector = endPoint_RT.minus(rootRT);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
@@ -219,7 +227,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   // Left - shoulder
-  startToGoal = leftGoal.minus(rootLT);
+  startToGoal = leftGoalTop.minus(rootLT);
   if (startToGoal.length() <.0001) return;
   startToEndEffector = endPoint_LT.minus(rootLT);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
@@ -233,7 +241,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   // Right - shoulder
-  startToGoal = rightGoal.minus(rootRB);
+  startToGoal = rightGoalBot.minus(rootRB);
   if (startToGoal.length() <.0001) return;
   startToEndEffector = endPoint_RB.minus(rootRB);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
@@ -247,7 +255,7 @@ void solve() {
   fk(); //Update link positions with fk (e.g. end effector changed)
 
   // Left - shoulder
-  startToGoal = leftGoal.minus(rootLB);
+  startToGoal = leftGoalBot.minus(rootLB);
   if (startToGoal.length() <.0001) return;
   startToEndEffector = endPoint_LB.minus(rootLB);
   dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
@@ -413,8 +421,13 @@ void keyPressed() {
   if (keyCode == RIGHT) rightPressed = true;
   if (keyCode == UP) upPressed = true;
   if (keyCode == DOWN) downPressed = true;
-  if (keyCode == TAB) trueMoveLeftElseMoveRight = !trueMoveLeftElseMoveRight;
-  if (keyCode == 32) moveBoth = !moveBoth; //space
+  if (keyCode == TAB) {
+    if(linksChoice == 3){
+      linksChoice = 0;
+    } else {
+      linksChoice++;
+    }
+  }
 }
 
 void keyReleased() {
