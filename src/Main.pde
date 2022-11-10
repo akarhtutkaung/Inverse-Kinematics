@@ -137,7 +137,14 @@ void draw() {
       pushMatrix();
       translate(l.startPos.get(i).x, l.startPos.get(i).y);
       rotate(l.getRotateTo(i+1));
+      circle(0,0,10);
       rect(0, -armW / 3, l.lengths.get(i), armW);
+      if (i + 1 >= l.numLinks){
+        popMatrix();
+        pushMatrix();
+        translate(l.startPos.get(i+1).x, l.startPos.get(i+1).y);
+        circle(0,0,10);
+      }
       popMatrix();
     }
   }

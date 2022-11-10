@@ -5,6 +5,7 @@ public class Chain {
   private float totallengths = 0;
   private float tolerance = 0.1;
   private Vector2 root;
+  private ArrayList<Vector2> prevStartPos;
   
   // startPos[0] == root,..., startPos[startPos.size()-1] = endPos,
   public ArrayList<Vector2> startPos;
@@ -15,10 +16,13 @@ public class Chain {
   Chain(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root) {
     this.jointLimits = new ArrayList<Float>();
     this.startPos = new ArrayList<Vector2>();
+    this.prevStartPos = new ArrayList<Vector2>();
     this.startPos.add(root);
+    this.prevStartPos.add(root);
     this.root = root;
     for(float length : lengths){
       this.startPos.add(new Vector2(0,0));
+      this.prevStartPos.add(new Vector2(0,0));
       this.jointLimits.add(Float.POSITIVE_INFINITY);
       totallengths += length;
     }
@@ -63,15 +67,14 @@ public class Chain {
   }
 
   private void calculateRotate(int startPosIndex, int endPosIndex, Vector2 goal){
-    Vector2 startToGoal, startToEndEffector;
+    Vector2 startToInitial, startToNew;
     float dotProd, angleDiff;
-    
-    startToGoal = goal.minus(startPos.get(startPosIndex));
-    startToEndEffector = startPos.get(startPos.size() - 1).minus(startPos.get(startPosIndex));
-    dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
+    startToInitial = (prevStartPos.get(endPosIndex).plus(startPos.get(startPosIndex).minus(prevStartPos.get(startPosIndex)))).minus(startPos.get(startPosIndex));
+    startToNew = startPos.get(endPosIndex).minus(startPos.get(startPosIndex));
+    dotProd = dot(startToNew.normalized(), startToInitial.normalized());
     dotProd = clamp(dotProd, -1,1);
     angleDiff = acos(dotProd);
-    if (cross(startToGoal,startToEndEffector) < 0)
+    if (cross(startToInitial, startToNew) > 0)
       rotates.set(startPosIndex, rotates.get(startPosIndex) + angleDiff);
     else
       rotates.set(startPosIndex, rotates.get(startPosIndex) - angleDiff);
@@ -84,7 +87,6 @@ public class Chain {
       newPos.setToLength(lengths.get(i));
       newPos.add(startPos.get(i + 1));
       startPos.set(i, newPos);
-      calculateRotate(i, i + 1, goal);
     }
   }
 
@@ -95,7 +97,6 @@ public class Chain {
       newPos.setToLength(lengths.get(i - 1));
       newPos.add(startPos.get(i - 1));
       startPos.set(i, newPos);
-      calculateRotate(i-1, i, goal);
     }    
   }
 
@@ -120,38 +121,22 @@ public class Chain {
       float dif = startPos.get(startPos.size() - 1).distanceTo(goal);
       int count = 0;
       while(dif > tolerance){
+        for(int i=0; i<startPos.size(); i++){
+          prevStartPos.set(i, new Vector2(startPos.get(i).x, startPos.get(i).y));
+        }
         fabrikBackward(goal);
         fabrikForward(goal);
+        for(int i=0; i < startPos.size() - 1; i++){
+          calculateRotate(i, i + 1, goal);
+        }
+        // fk();
         dif = startPos.get(startPos.size() - 1).distanceTo(goal);
         count++;
         if(count > 10){
-          break;
+          // break;
         }
       }
     }
-    
-    
-    // for (int i = numLinks - 1; i >= 0; i--) {      
-      // Vector2 startToGoal, startToEndEffector;
-      // float dotProd, angleDiff;
-      
-      // startToGoal = goal.minus(startPos.get(i));
-      // startToEndEffector = startPos.get(startPos.size() - 1).minus(startPos.get(i));
-      // dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
-      // dotProd = clamp(dotProd, -1,1);
-      // angleDiff = acos(dotProd);
-      // if (cross(startToGoal,startToEndEffector) < 0)
-      //   rotates.set(i, rotates.get(i) + angleDiff);
-      // else
-      //   rotates.set(i, rotates.get(i) - angleDiff);
-    //   // Joint limit set here
-    //   if(rotates.get(i)>jointLimits.get(i)){
-    //     rotates.set(i, jointLimits.get(i));
-    //   } else if (rotates.get(i)<-jointLimits.get(i)){
-    //     rotates.set(i, -jointLimits.get(i));
-    //   }
-    //   ccdFk();
-    // }
   }
 
   // Link start from 1
@@ -161,6 +146,7 @@ public class Chain {
       r += rotates.get(i);
     }
     return r;
+    // return rotates.get(link-1);
   }
   
   // Link start from 1
