@@ -23,7 +23,7 @@ Vector2 rootLB = new Vector2(rootM.x, rootM.y + botArmYOffset);
 Vector2 rootRT = new Vector2(rootM.x + rightArmXOffset, rootM.y + topArmYOffset);
 Vector2 rootRB = new Vector2(rootM.x + rightArmXOffset, rootM.y + botArmYOffset);
 
-ArrayList<Links> links = new ArrayList<Links>();;
+ArrayList<Chain> chains = new ArrayList<Chain>();;
 
 final float rotateI = 0.3;
 
@@ -32,7 +32,7 @@ Vector2 leftGoalTop = new Vector2(0, rootM.y + topArmYOffset);
 Vector2 rightGoalTop = new Vector2(width, rootM.y + topArmYOffset);
 Vector2 leftGoalBot = new Vector2(rootM.x, height);
 Vector2 rightGoalBot = new Vector2(rootM.x + rightArmXOffset, height);
-int linksChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
+int chainChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
 
 void setup() {
   size(649,480);
@@ -46,9 +46,9 @@ void setup() {
   rotateRT.add(rotateI);
   rotateRT.add(rotateI);
   rotateRT.add(rotateI);
-  Links linksRT = new Links(lengthRT, rotateRT, rootRT);
-  linksRT.setJointLimit(3, (float)Math.PI/2);
-  links.add(linksRT);
+  Chain chainRT = new Chain(lengthRT, rotateRT, rootRT);
+  chainRT.setJointLimit(3, (float)Math.PI/2);
+  chains.add(chainRT);
   
   ArrayList<Float> lengthRB = new ArrayList<Float>();
   ArrayList<Float> rotateRB = new ArrayList<Float>();
@@ -58,10 +58,10 @@ void setup() {
   rotateRB.add(rotateI);
   rotateRB.add(rotateI);
   rotateRB.add(rotateI);
-  Links linksRB = new Links(lengthRB, rotateRB, rootRB);
-  linksRB.setJointLimit(2, (float)Math.PI/2);
-  linksRB.setJointLimit(3, (float)Math.PI/2);
-  links.add(linksRB);
+  Chain chainRB = new Chain(lengthRB, rotateRB, rootRB);
+  chainRB.setJointLimit(2, (float)Math.PI/2);
+  chainRB.setJointLimit(3, (float)Math.PI/2);
+  chains.add(chainRB);
 
   ArrayList<Float> lengthLT = new ArrayList<Float>();
   ArrayList<Float> rotateLT = new ArrayList<Float>();
@@ -71,9 +71,9 @@ void setup() {
   rotateLT.add(rotateI);
   rotateLT.add(rotateI);
   rotateLT.add(rotateI);
-  Links linksLT = new Links(lengthLT, rotateLT, rootLT);
-  linksLT.setJointLimit(3, (float)Math.PI/2);
-  links.add(linksLT);
+  Chain chainLT = new Chain(lengthLT, rotateLT, rootLT);
+  chainLT.setJointLimit(3, (float)Math.PI/2);
+  chains.add(chainLT);
   
   ArrayList<Float> lengthLB = new ArrayList<Float>();
   ArrayList<Float> rotateLB = new ArrayList<Float>();
@@ -83,10 +83,10 @@ void setup() {
   rotateLB.add(rotateI);
   rotateLB.add(rotateI);
   rotateLB.add(rotateI);
-  Links linksLB = new Links(lengthLB, rotateLB, rootLB);
-  linksLB.setJointLimit(2, (float)Math.PI/2);
-  linksLB.setJointLimit(3, (float)Math.PI/2);
-  links.add(linksLB);
+  Chain chainLB = new Chain(lengthLB, rotateLB, rootLB);
+  chainLB.setJointLimit(2, (float)Math.PI/2);
+  chainLB.setJointLimit(3, (float)Math.PI/2);
+  chains.add(chainLB);
 }
 
 void setLeftRightRoot() {
@@ -97,7 +97,7 @@ void setLeftRightRoot() {
 }
 
 void switchLinks() {
-  switch(linksChoice) {
+  switch(chainChoice) {
     case(0) : 
       leftGoalTop = new Vector2(mouseX, mouseY);
     break;
@@ -114,10 +114,10 @@ void switchLinks() {
 }
 
 void draw() {
-  links.get(0).solve(rightGoalTop);
-  links.get(1).solve(rightGoalBot);
-  links.get(2).solve(leftGoalTop);
-  links.get(3).solve(leftGoalBot);
+  chains.get(0).fabrik(rightGoalTop);
+  chains.get(1).ccd(rightGoalBot);
+  chains.get(2).ccd(leftGoalTop);
+  chains.get(3).ccd(leftGoalBot);
   switchLinks();
   handleArrowKeys(1.0 / frameRate);
   
@@ -131,13 +131,13 @@ void draw() {
   rect(0, 0, 60, 200, 28);
   popMatrix();
 
-  // Draw links
-  for(Links l : links){
+  // Draw chains
+  for(Chain l : chains){
     for(int i=0; i<l.numLinks; i++){
       pushMatrix();
       translate(l.startPos.get(i).x, l.startPos.get(i).y);
       rotate(l.getRotateTo(i+1));
-      rect(0, -armW / 3, l.length.get(i), armW);
+      rect(0, -armW / 3, l.lengths.get(i), armW);
       popMatrix();
     }
   }
@@ -181,10 +181,10 @@ void keyPressed() {
   if (keyCode == UP) upPressed = true;
   if (keyCode == DOWN) downPressed = true;
   if (keyCode == TAB) {
-    if (linksChoice == 3) {
-      linksChoice = 0;
+    if (chainChoice == 3) {
+      chainChoice = 0;
     } else {
-      linksChoice++;
+      chainChoice++;
     }
   }
 }
