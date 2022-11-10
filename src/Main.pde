@@ -34,6 +34,9 @@ Vector2 leftGoalBot = new Vector2(rootM.x, height);
 Vector2 rightGoalBot = new Vector2(rootM.x + rightArmXOffset, height);
 int chainChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
 
+//TEST
+Chain globalRightArmChain;
+
 void setup() {
   size(649,480);
   surface.setTitle("Inverse Kinematics [CSCI 5611 Example]");
@@ -62,6 +65,7 @@ void setup() {
   chainRB.setJointLimit(2, (float)Math.PI/2);
   chainRB.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRB);
+  globalRightArmChain = chainRB;//DEBUG
 
   ArrayList<Float> lengthLT = new ArrayList<Float>();
   ArrayList<Float> rotateLT = new ArrayList<Float>();
@@ -137,10 +141,20 @@ void draw() {
       pushMatrix();
       translate(l.startPos.get(i).x, l.startPos.get(i).y);
       rotate(l.getRotateTo(i+1));
+      circle(0,0,10);
       rect(0, -armW / 3, l.lengths.get(i), armW);
+      if (i + 1 >= l.numLinks){
+        popMatrix();
+        pushMatrix();
+        translate(l.startPos.get(i+1).x, l.startPos.get(i+1).y);
+        circle(0,0,10);
+      }
       popMatrix();
     }
   }
+
+  //render joints
+  // for()
 }
 float obstacleSpeed = 300;
 
