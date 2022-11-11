@@ -89,11 +89,19 @@ void setup() {
   chains.add(chainLB);
 }
 
+void updateChainRoots() {
+  chains.get(0).setRoot(rootRT);
+  chains.get(1).setRoot(rootRB);
+  chains.get(2).setRoot(rootLT);
+  chains.get(3).setRoot(rootLB);
+}
+
 void setLeftRightRoot() {
   rootLT = new Vector2(rootM.x, rootM.y + topArmYOffset);
   rootLB = new Vector2(rootM.x, rootM.y + botArmYOffset);
   rootRT = new Vector2(rootM.x + rightArmXOffset, rootM.y + topArmYOffset);
   rootRB = new Vector2(rootM.x + rightArmXOffset, rootM.y + botArmYOffset);
+  updateChainRoots();
 }
 
 void switchLinks() {
@@ -114,10 +122,6 @@ void switchLinks() {
 }
 
 void draw() {
-  // chains.get(0).fabrik(rightGoalTop);
-  // chains.get(1).ccd(rightGoalBot);
-  // chains.get(2).ccd(leftGoalTop);
-  // chains.get(3).ccd(leftGoalBot);
   chains.get(0).solve(rightGoalTop);
   chains.get(1).solve(rightGoalBot);
   chains.get(2).solve(leftGoalTop);

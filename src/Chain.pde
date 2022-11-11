@@ -32,4 +32,8 @@ public abstract class Chain {
   public int getNumLinks(){
     return numLinks;
   }
+  public void setRoot(Vector2 root){
+    this.root = root;
+    startPos.set(0, root);
+  }
 }

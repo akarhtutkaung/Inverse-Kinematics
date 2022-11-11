@@ -59,12 +59,32 @@ public class FABRIK extends Chain {
   public void solve(Vector2 goal) {
     float distance = startPos.get(0).distanceTo(goal);
     if(distance > totallengths){
+      // set position
       Vector2 direction = root.directionTo(goal);
       Vector2 newPos = root;
+      for(int i=0; i<startPos.size(); i++){
+        prevStartPos.set(i, new Vector2(startPos.get(i).x, startPos.get(i).y));
+      }
       for(int i=0; i<startPos.size() - 1; i++){
         newPos = newPos.plus(direction.times(lengths.get(i)));
-        startPos.set(i + 1, newPos);
-        
+        startPos.set(i + 1, newPos);  
+      }
+
+      // set rotation
+      Vector2 startToInitial, startToNew;
+      float dotProd, angleDiff;
+      startToInitial = new Vector2(1, 0);
+      startToNew = root.directionTo(startPos.get(1));
+      dotProd = dot(startToNew.normalized(), startToInitial.normalized());
+      dotProd = clamp(dotProd, -1,1);
+      angleDiff = acos(dotProd);
+      if (cross(startToNew, startToInitial) < 0)
+        rotates.set(0, angleDiff);
+      else
+        rotates.set(0, -angleDiff);
+
+      for(int i=1; i<numLinks; i++){
+        rotates.set(i, rotates.get(0));
       }
     } else {
       float dif = startPos.get(startPos.size() - 1).distanceTo(goal);
