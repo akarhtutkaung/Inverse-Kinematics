@@ -112,6 +112,7 @@ public class Chain {
       Vector2 worldDirection = (startPos.get(i+1).minus(startPos.get(i))).normalized(); //get the world target direction.
       Vector2 unitDirection = new Vector2(1,0); //the direction of a 0 angle in the world.
       float worldRotation = acos(dot(worldDirection, unitDirection)); //this is the rotation relative to the world.
+      worldRotations[i] = worldRotation;
 
       // float angleDiff = worldRotation - accumRotates; //Now we get the angle relative to the previous rotates...
       // rotates.set(i, angleDiff);
@@ -120,6 +121,9 @@ public class Chain {
       // else
       //   rotates.set(i, -angleDiff);
     }
+
+    //now convert world rotation to individual rotations... hopefully this works.
+    for (int i = 0; i < rotates)
   }
 
   private void fabrikBackward(Vector2 goal){
