@@ -1,7 +1,6 @@
 public class FABRIK extends Chain {
   private ArrayList<Vector2> prevStartPos;
   private float totallengths = 0;
-  private float tolerance = 0.1;
 
   FABRIK(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root) {
     jointLimits = new ArrayList<Float>();
@@ -21,20 +20,6 @@ public class FABRIK extends Chain {
     numLinks = lengths.size();
     fk();
   }
-
-    private void calculateRotate(int startPosIndex, int endPosIndex){
-      Vector2 startToInitial, startToNew;
-      float dotProd, angleDiff;
-      startToInitial = (prevStartPos.get(endPosIndex).plus(startPos.get(startPosIndex).minus(prevStartPos.get(startPosIndex)))).minus(startPos.get(startPosIndex));
-      startToNew = startPos.get(endPosIndex).minus(startPos.get(startPosIndex));
-      dotProd = dot(startToNew.normalized(), startToInitial.normalized());
-      dotProd = clamp(dotProd, -1,1);
-      angleDiff = acos(dotProd);
-      if (cross(startToNew, startToInitial) < 0)
-        rotates.set(startPosIndex, rotates.get(startPosIndex) + angleDiff);
-      else
-        rotates.set(startPosIndex, rotates.get(startPosIndex) - angleDiff);
-    }
 
   private void fabrikBackward(Vector2 goal){
     startPos.set(startPos.size() - 1, goal);
@@ -57,53 +42,31 @@ public class FABRIK extends Chain {
   }
 
   public void solve(Vector2 goal) {
-    float distance = startPos.get(0).distanceTo(goal);
-    if(distance > totallengths){
-      // set position
-      Vector2 direction = root.directionTo(goal);
-      Vector2 newPos = root;
+    int count = 0;
+    while(true){
       for(int i=0; i<startPos.size(); i++){
         prevStartPos.set(i, new Vector2(startPos.get(i).x, startPos.get(i).y));
       }
-      for(int i=0; i<startPos.size() - 1; i++){
-        newPos = newPos.plus(direction.times(lengths.get(i)));
-        startPos.set(i + 1, newPos);  
+      fabrikBackward(goal);
+      fabrikForward(goal);
+      count++;
+      if(count > 10){
+        break;
       }
+      calculateWorldRotate();
+    }
+  }
 
-      // set rotation
-      Vector2 startToInitial, startToNew;
-      float dotProd, angleDiff;
-      startToInitial = new Vector2(1, 0);
-      startToNew = root.directionTo(startPos.get(1));
-      dotProd = dot(startToNew.normalized(), startToInitial.normalized());
-      dotProd = clamp(dotProd, -1,1);
-      angleDiff = acos(dotProd);
-      if (cross(startToNew, startToInitial) < 0)
-        rotates.set(0, angleDiff);
-      else
-        rotates.set(0, -angleDiff);
-
-      for(int i=1; i<numLinks; i++){
-        rotates.set(i, rotates.get(0));
-      }
-    } else {
-      float dif = startPos.get(startPos.size() - 1).distanceTo(goal);
-      int count = 0;
-      while(dif > tolerance){
-        for(int i=0; i<startPos.size(); i++){
-          prevStartPos.set(i, new Vector2(startPos.get(i).x, startPos.get(i).y));
-        }
-        fabrikBackward(goal);
-        fabrikForward(goal);
-        for(int i=0; i < startPos.size() - 1; i++){
-          calculateRotate(i, i + 1);
-        }
-        dif = startPos.get(startPos.size() - 1).distanceTo(goal);
-        count++;
-        if(count > 10){
-          break;
-        }
-      }
+  private void calculateWorldRotate(){
+    //Calling this function will calculate the angle of all the rectangles in world space.
+    for (int i = 0; i < startPos.size() - 1; i++){
+      Vector2 worldDirection = (startPos.get(i+1).minus(startPos.get(i))).normalized(); //get the world target direction.
+      Vector2 unitDirection = new Vector2(1,0); //the direction of a 0 angle in the world.
+      float worldRotation = acos(dot(worldDirection, unitDirection)); //this is the rotation relative to the world.
+       if (cross(worldDirection, unitDirection) < 0)
+         rotates.set(i, worldRotation);
+       else
+         rotates.set(i, -worldRotation);
     }
   }
 
