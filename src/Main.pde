@@ -94,6 +94,7 @@ void setup() {
 }
 
 void setLeftRightRoot() {
+  println("called");
   rootLT = new Vector2(rootM.x, rootM.y + topArmYOffset);
   rootLB = new Vector2(rootM.x, rootM.y + botArmYOffset);
   rootRT = new Vector2(rootM.x + rightArmXOffset, rootM.y + topArmYOffset);
@@ -140,7 +141,12 @@ void draw() {
     for(int i=0; i<l.numLinks; i++){
       pushMatrix();
       translate(l.startPos.get(i).x, l.startPos.get(i).y);
-      rotate(l.getRotateTo(i+1));
+      if (l.useWorld){
+        rotate(l.rotates.get(i)); //rotation is independent of other rotates, i.e. world space.
+      } else {
+        rotate(l.getRotateTo(i+1)); //rotation is added from the previous rotates.
+      }
+      
       circle(0,0,10);
       rect(0, -armW / 3, l.lengths.get(i), armW);
       if (i + 1 >= l.numLinks){
@@ -186,6 +192,11 @@ void handleArrowKeys(float dt) {
   rootM.x += obstacleVel.x * dt;
   rootM.y += obstacleVel.y * dt;
   setLeftRightRoot();
+  for (Chain chain : chains){
+    chain.startPos.get(0).x += obstacleVel.x * dt;
+    chain.startPos.get(0).y += obstacleVel.y * dt;
+    
+  }
 }
 
 boolean leftPressed, rightPressed, upPressed, downPressed, shiftPressed;

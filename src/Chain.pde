@@ -11,6 +11,7 @@ public class Chain {
   public ArrayList<Float> lengths;
   public ArrayList<Float> rotates;
   public int numLinks;
+  public boolean useWorld = false; //if using CCD, this is false. If using FABRIK, is true.
   
   Chain(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root) {
     this.jointLimits = new ArrayList<Float>();
@@ -39,6 +40,7 @@ public class Chain {
   }
   
   public void ccd(Vector2 goal) {
+    useWorld = false; //set to false, which will make rectangles rendered via getRotateTo and rotates.
     for (int i = numLinks - 1; i >= 0; i--) {      
       Vector2 startToGoal, startToEndEffector;
       float dotProd, angleDiff;
@@ -62,68 +64,18 @@ public class Chain {
     }
   }
 
-  private void calculateRotate(){
-    // Vector2 startToGoal, startToEndEffector;
-    // float dotProd, angleDiff;
-    
-    // // startToGoal = startPos.get(endPosIndex).minus(startPos.get(startPosIndex));
-    // // Vector2 unit = new Vector2(1,0);
-    // // // startToEndEffector = startPos.get(startPos.size() - 1).minus(startPos.get(startPosIndex));
-    // // dotProd = dot(startToGoal.normalized(),unit);
-    // // // dotProd = clamp(dotProd, -1,1);
-    // //   angleDiff = Main.Vector2.directionTo(startToGoal);
-    // // if (cross(startToGoal,startToEndEffector) < 0)
-    // //   rotates.set(startPosIndex, angleDiff);
-    // // else
-
-
-    // Vector2 targetDirection = startPos.get(startPosIndex).directionTo(startPos.get(endPosIndex));
-    // Vector2 unit = new Vector2(1,0);
-    // float targetAngle = dot(unit, targetDirection);
-    // targetAngle = acos(targetAngle);
-    // if (cross(targetDirection,unit) < 0)
-    //   rotates.set(startPosIndex, 45f);
-    // else
-    //   rotates.set(startPosIndex, 45f);
-
-
-    //   // rotates.set(startPosIndex, 0+targetAngle);
-    
-    //Each rotation in rotates is the sum of all rotations before.
-    //We will try to fix this by combating this issue.
-    //To do this, this function is modified so that calling this will calculate the rotation from start to end effector from scratch.
-    //Knowing how rotates works, we will have two variables: accumRotates, which is the accumulated rotation from the previous rotates, and worldRotation, which is the "world space" rotation.
-    //So we will first find the world rotation - which is just the angle of the vector pointing from one link to the next...
-    //Then we will calculate the accumRotates, which will get all the rotations prior to this.
-    //Then, we get the difference between the accumRotates and worldRotation, and set this as the new angle.
-
-    //As a note:
-    // StartPos holds the position of each joint (from root to end effector)
-    // Rotates holds the rotation of just each rectangle.
-    // StartPos.size == (rotates.size + 1)
-    Vector2 startToEndEffector = startPos.get(startPos.size()-1).minus(startPos.get(0));
-    float[] worldRotations = new float[numLinks]; //A collection of world rotations. This will be calculated first.
+  private void calculateWorldRotate(){
+    //Calling this function will calculate the angle of all the rectangles in world space.
+    //Used for FABRIK and not CCD!
     for (int i = 0; i < startPos.size() - 1; i++){
-      // float accumRotates = 0; //holds sum of rotations accumulated from previous rotates
-      // for (int j = 0; j < i; j++){
-      //   accumRotates += rotates.get(j);
-      // }
-      // Vector2 accumDirection = new Vector2(cos(accumRotates), sin(accumRotates)); //this is teh direction vector of accumRotates
       Vector2 worldDirection = (startPos.get(i+1).minus(startPos.get(i))).normalized(); //get the world target direction.
       Vector2 unitDirection = new Vector2(1,0); //the direction of a 0 angle in the world.
       float worldRotation = acos(dot(worldDirection, unitDirection)); //this is the rotation relative to the world.
-      worldRotations[i] = worldRotation;
-
-      // float angleDiff = worldRotation - accumRotates; //Now we get the angle relative to the previous rotates...
-      // rotates.set(i, angleDiff);
-      // if (cross(worldDirection, startToEndEffector) > 0)
-      //   rotates.set(i, angleDiff);
-      // else
-      //   rotates.set(i, -angleDiff);
+       if (cross(worldDirection, unitDirection) < 0)
+         rotates.set(i, worldRotation);
+       else
+         rotates.set(i, -worldRotation);
     }
-
-    //now convert world rotation to individual rotations... hopefully this works.
-    for (int i = 0; i < rotates)
   }
 
   private void fabrikBackward(Vector2 goal){
@@ -133,7 +85,6 @@ public class Chain {
       newPos.setToLength(lengths.get(i));
       newPos.add(startPos.get(i + 1));
       startPos.set(i, newPos);
-      // calculateRotate(i, i + 1, goal);
     }
   }
 
@@ -144,40 +95,25 @@ public class Chain {
       newPos.setToLength(lengths.get(i - 1));
       newPos.add(startPos.get(i - 1));
       startPos.set(i, newPos);
-      // calculateRotate(i-1, i, goal);
     }    
   }
 
   public void fabrik(Vector2 goal) {
+    //useWorld = true; //set to trye, which will make rectangles rotated world relatively.
     // distance = target - root
     float distance = startPos.get(0).distanceTo(goal);
-    if(distance > totallengths){
-      // target out of reach
-      for (int i = 0; i < numLinks; i++) {     
-        Vector2 startToGoal = goal.minus(startPos.get(i));
-        Vector2 startToEndEffector = startPos.get(startPos.size() - 1).minus(startPos.get(i));
-        float dotProd = dot(startToGoal.normalized(),startToEndEffector.normalized());
-        dotProd = clamp(dotProd, -1,1);
-        float angleDiff = acos(dotProd);
-        if (cross(startToGoal,startToEndEffector) < 0)
-          rotates.set(i, rotates.get(i) + angleDiff);
-        else
-          rotates.set(i, rotates.get(i) - angleDiff);
-        fk();
+    useWorld = true; //FABRIK! The angles stored in rotates correspond to angles in world space.
+    float dif = startPos.get(startPos.size() - 1).distanceTo(goal);
+    int count = 0;
+    while(true){
+      fabrikBackward(goal);
+      fabrikForward(goal);
+      dif = startPos.get(startPos.size() - 1).distanceTo(goal);
+      count++;
+      if(count > 10){
+        break;
       }
-    } else {
-      float dif = startPos.get(startPos.size() - 1).distanceTo(goal);
-      int count = 0;
-      while(dif > tolerance){
-        fabrikBackward(goal);
-        fabrikForward(goal);
-        dif = startPos.get(startPos.size() - 1).distanceTo(goal);
-        count++;
-        if(count > 10){
-          break;
-        }
-      }
-      calculateRotate();
+      calculateWorldRotate();
     }
     
     
