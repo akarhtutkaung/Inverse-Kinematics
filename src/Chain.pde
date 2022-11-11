@@ -101,22 +101,24 @@ public class Chain {
     // StartPos holds the position of each joint (from root to end effector)
     // Rotates holds the rotation of just each rectangle.
     // StartPos.size == (rotates.size + 1)
+    Vector2 startToEndEffector = startPos.get(startPos.size()-1).minus(startPos.get(0));
+    float[] worldRotations = new float[numLinks]; //A collection of world rotations. This will be calculated first.
     for (int i = 0; i < startPos.size() - 1; i++){
-      float accumRotates = 0; //holds sum of rotations accumulated from previous rotates
-      for (int j = 0; j < i; j++){
-        accumRotates += rotates.get(j);
-      }
-      Vector2 accumDirection = new Vector2(cos(accumRotates), sin(accumRotates)); //this is teh direction vector of accumRotates
+      // float accumRotates = 0; //holds sum of rotations accumulated from previous rotates
+      // for (int j = 0; j < i; j++){
+      //   accumRotates += rotates.get(j);
+      // }
+      // Vector2 accumDirection = new Vector2(cos(accumRotates), sin(accumRotates)); //this is teh direction vector of accumRotates
       Vector2 worldDirection = (startPos.get(i+1).minus(startPos.get(i))).normalized(); //get the world target direction.
       Vector2 unitDirection = new Vector2(1,0); //the direction of a 0 angle in the world.
       float worldRotation = acos(dot(worldDirection, unitDirection)); //this is the rotation relative to the world.
 
-      float angleDiff = worldRotation - accumRotates; //Now we get the angle relative to the previous rotates...
+      // float angleDiff = worldRotation - accumRotates; //Now we get the angle relative to the previous rotates...
       // rotates.set(i, angleDiff);
-      if (cross(accumDirection, worldDirection) < 0)
-        rotates.set(i, angleDiff);
-      else
-        rotates.set(i, -angleDiff);
+      // if (cross(worldDirection, startToEndEffector) > 0)
+      //   rotates.set(i, angleDiff);
+      // else
+      //   rotates.set(i, -angleDiff);
     }
   }
 
