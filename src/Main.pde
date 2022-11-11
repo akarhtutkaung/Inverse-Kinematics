@@ -46,7 +46,7 @@ void setup() {
   rotateRT.add(rotateI);
   rotateRT.add(rotateI);
   rotateRT.add(rotateI);
-  Chain chainRT = new Chain(lengthRT, rotateRT, rootRT);
+  Chain chainRT = new FABRIK(lengthRT, rotateRT, rootRT);
   chainRT.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRT);
   
@@ -58,7 +58,7 @@ void setup() {
   rotateRB.add(rotateI);
   rotateRB.add(rotateI);
   rotateRB.add(rotateI);
-  Chain chainRB = new Chain(lengthRB, rotateRB, rootRB);
+  Chain chainRB = new CCD(lengthRB, rotateRB, rootRB);
   chainRB.setJointLimit(2, (float)Math.PI/2);
   chainRB.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRB);
@@ -71,7 +71,7 @@ void setup() {
   rotateLT.add(rotateI);
   rotateLT.add(rotateI);
   rotateLT.add(rotateI);
-  Chain chainLT = new Chain(lengthLT, rotateLT, rootLT);
+  Chain chainLT = new CCD(lengthLT, rotateLT, rootLT);
   chainLT.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainLT);
   
@@ -83,7 +83,7 @@ void setup() {
   rotateLB.add(rotateI);
   rotateLB.add(rotateI);
   rotateLB.add(rotateI);
-  Chain chainLB = new Chain(lengthLB, rotateLB, rootLB);
+  Chain chainLB = new CCD(lengthLB, rotateLB, rootLB);
   chainLB.setJointLimit(2, (float)Math.PI/2);
   chainLB.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainLB);
@@ -114,10 +114,14 @@ void switchLinks() {
 }
 
 void draw() {
-  chains.get(0).fabrik(rightGoalTop);
-  chains.get(1).ccd(rightGoalBot);
-  chains.get(2).ccd(leftGoalTop);
-  chains.get(3).ccd(leftGoalBot);
+  // chains.get(0).fabrik(rightGoalTop);
+  // chains.get(1).ccd(rightGoalBot);
+  // chains.get(2).ccd(leftGoalTop);
+  // chains.get(3).ccd(leftGoalBot);
+  chains.get(0).solve(rightGoalTop);
+  chains.get(1).solve(rightGoalBot);
+  chains.get(2).solve(leftGoalTop);
+  chains.get(3).solve(leftGoalBot);
   switchLinks();
   handleArrowKeys(1.0 / frameRate);
   
@@ -133,12 +137,12 @@ void draw() {
 
   // Draw chains
   for(Chain l : chains){
-    for(int i=0; i<l.numLinks; i++){
+    for(int i=0; i<l.getNumLinks(); i++){
       pushMatrix();
-      translate(l.startPos.get(i).x, l.startPos.get(i).y);
-      rotate(l.getRotateTo(i+1));
+      translate(l.getPos(i).x, l.getPos(i).y);
+      rotate(l.getRotate(i+1));
       circle(0,0,10);
-      rect(0, -armW / 3, l.lengths.get(i), armW);
+      rect(0, -armW / 3, l.getLength(i), armW);
       if (i + 1 >= l.numLinks){
         popMatrix();
         pushMatrix();
