@@ -57,7 +57,7 @@ public class Vector2 {
   }
   
   public Vector2 normalized(){
-    float magnitude = sqrt(x*x + y*y);
+    float magnitude = sqrt(x*x + y*y);  
     return new Vector2(x/magnitude, y/magnitude);
   }
   

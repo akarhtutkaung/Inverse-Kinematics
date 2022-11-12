@@ -48,6 +48,7 @@ void setup() {
   rotateRT.add(rotateI);
   Chain chainRT = new FABRIK(lengthRT, rotateRT, rootRT);
   chainRT.setJointLimit(3, (float)Math.PI/2);
+  //chainRT.setJointLimit(2, (float)Math.PI/2);
   chains.add(chainRT);
   
   ArrayList<Float> lengthRB = new ArrayList<Float>();
