@@ -1,3 +1,9 @@
+/**
+*  Guide: 
+*   Press TAB to toggle between limbs.
+*   Press SPACE to toggle between crawling
+*/
+
 import java.util.ArrayList;
 import java.util.*;
 
@@ -34,8 +40,8 @@ int chainChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
 //crawling variables
 boolean crawling = false; //if set to true, the roots will automatically shift based on reach.
 float crawlTolerance = 60f;//distance before goal is set to new root.
-Vector2 lastDirection; //used to determine where to reposition goal.
-float goalRandomization = 1f;//when relocating goals for crawling, goal is deviated slightly.
+Vector2 lastDirection; //Keeps track of movement to determine where to reposition goals (NOT User defined)
+float goalRandomization = (float) Math.PI/2;//when relocating goals for crawling, goal is deviated slightly.
 
 void setup() {
   //size(649,480);
@@ -132,35 +138,31 @@ void crawlingBehavior() {
   for (int i = 0; i < chains.size(); i++){
     Chain curChain = chains.get(i);
     Vector2 endEffectorPosition = curChain.startPos.get(curChain.startPos.size() - 1);
-    //println("distance from goal" + curChain.name + (endEffectorPosition.distanceTo(goals.get(i))));
-    if (endEffectorPosition.distanceTo(goals.get(i)) > crawlTolerance){ //the goal of this chain is too far for the end effector. Repositioning goal.
+    if (endEffectorPosition.distanceTo(goals.get(i)) > crawlTolerance){ //the goal of this chain is too far for the end effector. Reposition goal.
       Vector2 chainRoot = curChain.startPos.get(0);
-      //println(lastDirection);
-      if (lastDirection.length() != 0){
-        //println("THIS");
-        //Vector2 randomGoalPos = lastDirection.times(curChain.getTotalLength()).plus(randomPointInCircle(goalRandomization));
-        //goals.set(i, chainRoot.plus(randomGoalPos));
-        goals.set(i, chainRoot.plus(lastDirection.times(curChain.getTotalLength())));
-      } else {
-        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).times(curChain.getTotalLength())));
+      if (lastDirection.length() != 0){ //If movement caused the breakaway.
+        Vector2 deviated = rotateRandom((float) Math.PI/2, lastDirection);
+        goals.set(i, chainRoot.plus(deviated.times(curChain.getTotalLength())));
+      } else { //no movement caused the brakeaway (likely in the beginning.)
+        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).normalized().times(curChain.getTotalLength())));
       }
     }
   }
 }
 
-private Vector2 randomPointInCircle(float inRadius){
-  float radius = inRadius * sqrt(random(0,1));
-  float theta = sqrt(random(0f, (float) Math.PI * 2));
-  return new Vector2(radius * cos(theta), radius * sin(theta));
+//randomly rotates the given Vector within the range (range/2 of either side in radians)
+private Vector2 rotateRandom(float range, Vector2 input){
+  float angle = random(-range/2, range/2);
+  float newX = input.x * cos(angle) - input.y * sin(angle);
+  float newY = input.x * sin(angle) + input.y * cos(angle);
+  return new Vector2(newX, newY);
 }
 
 void draw() {
-  //println(lastDirection);
   if (crawling){
     crawlingBehavior();
   } else {
     switchLinks();
-    //println(rootM);
   }
   chains.get(0).solve(goals.get(0));
   chains.get(1).solve(goals.get(1));
@@ -215,8 +217,6 @@ void handleArrowKeys(float dt) {
   if (downPressed) obstacleDir.add(new Vector2(0,1));
   if (upPressed) obstacleDir.add(new Vector2(0,-1));
   if (obstacleDir.length() != 0) obstacleDir.normalize();
-  //println("obsDir" + obstacleDir);
-  //println(obstacleDir);
   
   Vector2 obstacleVel = obstacleDir.times(obstacleSpeed);
   

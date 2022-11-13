@@ -42,20 +42,21 @@ public class FABRIK extends Chain {
     }    
   }
 
+//Note: removed reiterations to make the arm slide more smoothly.
   public void solve(Vector2 goal) {
-    int count = 0;
-    while(true){
+    //int count = 0;
+    //while(true){
       for(int i=0; i<startPos.size(); i++){
         prevStartPos.set(i, new Vector2(startPos.get(i).x, startPos.get(i).y));
       }
       fabrikBackward(goal);
       fabrikForward(goal);
-      count++;
-      if(count > 10){
-        break;
-      }
+      //count++;
+      //if(count > 10){
+      //  break;
+      //}
       calculateWorldRotate();
-    }
+    //}
   }
 
   private void calculateWorldRotate(){
