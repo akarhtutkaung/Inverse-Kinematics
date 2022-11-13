@@ -7,9 +7,9 @@ final float topArmYOffset = 20;
 final float botArmYOffset = 150;
 final float rightArmXOffset = 60;
 
-final float upperArmLength = 60;
-final float lowerArmLength = 90;
-final float handLength = 30;
+final float upperArmLength = 60; //60
+final float lowerArmLength = 90; //90
+final float handLength = 30; //30
 
 final float armW = 20;
 
@@ -28,15 +28,31 @@ ArrayList<Chain> chains = new ArrayList<Chain>();;
 final float rotateI = 0.3;
 
 //goals
-Vector2 leftGoalTop = new Vector2(0, rootM.y + topArmYOffset);
-Vector2 rightGoalTop = new Vector2(width, rootM.y + topArmYOffset);
-Vector2 leftGoalBot = new Vector2(rootM.x, height);
-Vector2 rightGoalBot = new Vector2(rootM.x + rightArmXOffset, height);
+ArrayList<Vector2> goals = new ArrayList<Vector2>(); //each element corresponds to a chain.
 int chainChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
 
+//crawling variables
+boolean crawling = false; //if set to true, the roots will automatically shift based on reach.
+float crawlTolerance = 0.1f;//distance before goal is set to new root.
+Vector2 lastDirection; //used to determine where to reposition goal.
+float goalRadndomization = 0.1f;//when relocating goals for crawling, goal is deviated slightly.
+
 void setup() {
-  size(649,480);
+  //size(649,480);
+  size(1289, 720); 
   surface.setTitle("Inverse Kinematics [CSCI 5611 Example]");
+  
+  ArrayList<Float> lengthLT = new ArrayList<Float>();
+  ArrayList<Float> rotateLT = new ArrayList<Float>();
+  lengthLT.add(upperArmLength);
+  lengthLT.add(lowerArmLength);
+  lengthLT.add(handLength);
+  rotateLT.add(rotateI);
+  rotateLT.add(rotateI);
+  rotateLT.add(rotateI);
+  Chain chainLT = new CCD(lengthLT, rotateLT, rootLT, "LT");
+  chainLT.setJointLimit(3, (float)Math.PI/2);
+  chains.add(chainLT);
   
   ArrayList<Float> lengthRT = new ArrayList<Float>();
   ArrayList<Float> rotateRT = new ArrayList<Float>();
@@ -46,9 +62,23 @@ void setup() {
   rotateRT.add(rotateI);
   rotateRT.add(rotateI);
   rotateRT.add(rotateI);
-  Chain chainRT = new FABRIK(lengthRT, rotateRT, rootRT);
+  Chain chainRT = new FABRIK(lengthRT, rotateRT, rootRT, "RT");
   chainRT.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRT);
+  
+    
+  ArrayList<Float> lengthLB = new ArrayList<Float>();
+  ArrayList<Float> rotateLB = new ArrayList<Float>();
+  lengthLB.add(upperArmLength);
+  lengthLB.add(lowerArmLength);
+  lengthLB.add(handLength);
+  rotateLB.add(rotateI);
+  rotateLB.add(rotateI);
+  rotateLB.add(rotateI);
+  Chain chainLB = new CCD(lengthLB, rotateLB, rootLB, "LB");
+  chainLB.setJointLimit(2, (float)Math.PI/2);
+  chainLB.setJointLimit(3, (float)Math.PI/2);
+  chains.add(chainLB);
   
   ArrayList<Float> lengthRB = new ArrayList<Float>();
   ArrayList<Float> rotateRB = new ArrayList<Float>();
@@ -58,42 +88,31 @@ void setup() {
   rotateRB.add(rotateI);
   rotateRB.add(rotateI);
   rotateRB.add(rotateI);
-  Chain chainRB = new CCD(lengthRB, rotateRB, rootRB);
+  Chain chainRB = new CCD(lengthRB, rotateRB, rootRB, "RB");
   chainRB.setJointLimit(2, (float)Math.PI/2);
   chainRB.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRB);
 
-  ArrayList<Float> lengthLT = new ArrayList<Float>();
-  ArrayList<Float> rotateLT = new ArrayList<Float>();
-  lengthLT.add(upperArmLength);
-  lengthLT.add(lowerArmLength);
-  lengthLT.add(handLength);
-  rotateLT.add(rotateI);
-  rotateLT.add(rotateI);
-  rotateLT.add(rotateI);
-  Chain chainLT = new CCD(lengthLT, rotateLT, rootLT);
-  chainLT.setJointLimit(3, (float)Math.PI/2);
-  chains.add(chainLT);
-  
-  ArrayList<Float> lengthLB = new ArrayList<Float>();
-  ArrayList<Float> rotateLB = new ArrayList<Float>();
-  lengthLB.add(upperArmLength);
-  lengthLB.add(lowerArmLength);
-  lengthLB.add(handLength);
-  rotateLB.add(rotateI);
-  rotateLB.add(rotateI);
-  rotateLB.add(rotateI);
-  Chain chainLB = new CCD(lengthLB, rotateLB, rootLB);
-  chainLB.setJointLimit(2, (float)Math.PI/2);
-  chainLB.setJointLimit(3, (float)Math.PI/2);
-  chains.add(chainLB);
+
+
+  //set up goal array.
+  //println(rootM);
+  Vector2 leftGoalTop = new Vector2(0, rootM.y + topArmYOffset);
+  Vector2 rightGoalTop = new Vector2(width, rootM.y + topArmYOffset);
+  Vector2 leftGoalBot = new Vector2(rootM.x, height);
+  Vector2 rightGoalBot = new Vector2(rootM.x + rightArmXOffset, height);
+  goals.add(leftGoalTop);
+  goals.add(rightGoalTop);
+  goals.add(leftGoalBot);
+  goals.add(rightGoalBot);
+  //for (Vector2 goal : goals) println(goal);
 }
 
 void updateChainRoots() {
-  chains.get(0).setRoot(rootRT);
-  chains.get(1).setRoot(rootRB);
-  chains.get(2).setRoot(rootLT);
-  chains.get(3).setRoot(rootLB);
+  chains.get(0).setRoot(rootLT);
+  chains.get(1).setRoot(rootRT);
+  chains.get(2).setRoot(rootLB);
+  chains.get(3).setRoot(rootRB);
 }
 
 void setLeftRightRoot() {
@@ -105,28 +124,43 @@ void setLeftRightRoot() {
 }
 
 void switchLinks() {
-  switch(chainChoice) {
-    case(0) : 
-      leftGoalTop = new Vector2(mouseX, mouseY);
-    break;
-    case(1) : 
-      rightGoalTop = new Vector2(mouseX, mouseY);
-    break;
-    case(2) : 
-      leftGoalBot = new Vector2(mouseX, mouseY);
-    break;
-    case(3) : 
-      rightGoalBot = new Vector2(mouseX, mouseY);
-    break;
+  goals.set(chainChoice, new Vector2(mouseX, mouseY));
+  //println("Link for " + chains.get(chainChoice).name + ": " + goals.get(chainChoice)); //DEBUG
+}
+
+void crawlingBehavior() {
+  for (int i = 0; i < chains.size(); i++){
+    Chain curChain = chains.get(i);
+    //println(
+    Vector2 endEffectorPosition = curChain.startPos.get(curChain.startPos.size() - 1);
+    println("distance from goal" + curChain.name + (endEffectorPosition.distanceTo(goals.get(i))));
+    if (endEffectorPosition.distanceTo(goals.get(i)) > crawlTolerance + curChain.getTotalLength()){ //the goal of this chain is too far for the end effector. Repositioning goal.
+      Vector2 chainRoot = curChain.startPos.get(0);
+      println(lastDirection);
+      if (lastDirection.x != 0 & lastDirection.y != 0){
+        Vector2 randomGoalPos = (lastDirection.plus(new Vector2(random(-0.1,0.1), random(-0.1,0.1)))).normalized();
+        goals.set(i, chainRoot.plus(randomGoalPos.times(curChain.getTotalLength() - crawlTolerance)));
+        //goals.set(i, chainRoot.plus(lastDirection.times(curChain.getTotalLength() - crawlTolerance)));
+      } else {
+        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).times(curChain.getTotalLength() - crawlTolerance)));
+      }
+    }
   }
 }
 
 void draw() {
-  chains.get(0).solve(rightGoalTop);
-  chains.get(1).solve(rightGoalBot);
-  chains.get(2).solve(leftGoalTop);
-  chains.get(3).solve(leftGoalBot);
-  switchLinks();
+  //println(lastDirection);
+  if (crawling){
+    crawlingBehavior();
+  } else {
+    switchLinks();
+    //println(rootM);
+  }
+  chains.get(0).solve(goals.get(0));
+  chains.get(1).solve(goals.get(1));
+  chains.get(2).solve(goals.get(2));
+  chains.get(3).solve(goals.get(3));
+  
   handleArrowKeys(1.0 / frameRate);
   
   background(250,250,250);
@@ -156,37 +190,34 @@ void draw() {
       popMatrix();
     }
   }
+  
+  //goals
+  for(Vector2 goal : goals) {
+    pushMatrix();
+    translate(goal.x, goal.y);
+    fill(color(100,100,100));
+    circle(0,0,30);
+    popMatrix();
+  }
 }
 float obstacleSpeed = 300;
 
 void handleArrowKeys(float dt) {
-  Vector2 obstacleVel = new Vector2(0, 0);
-  if (leftPressed) obstacleVel = new Vector2( - obstacleSpeed, 0);
-  else if (rightPressed) obstacleVel = new Vector2(obstacleSpeed, 0);
-  else if (upPressed) obstacleVel = new Vector2(0, -obstacleSpeed);
-  else if (downPressed) obstacleVel = new Vector2(0, obstacleSpeed);
+  Vector2 obstacleDir = new Vector2(0,0);
+  if (leftPressed) obstacleDir.add(new Vector2(-1, 0));
+  if (rightPressed) obstacleDir.add(new Vector2(1, 0));
+  if (downPressed) obstacleDir.add(new Vector2(0,1));
+  if (upPressed) obstacleDir.add(new Vector2(0,-1));
+  if (obstacleDir.length() != 0) obstacleDir.normalize();
+  //println("obsDir" + obstacleDir);
+  //println(obstacleDir);
   
-  if (downPressed && leftPressed) obstacleVel = new Vector2( - obstacleSpeed * cosTheta, obstacleSpeed * sinTheta);
-  else if (downPressed && rightPressed) obstacleVel = new Vector2(obstacleSpeed * cosTheta, obstacleSpeed * sinTheta);
-  else if (upPressed && leftPressed) obstacleVel = new Vector2( - obstacleSpeed * cosTheta, -obstacleSpeed * sinTheta);
-  else if (upPressed && rightPressed) obstacleVel = new Vector2(obstacleSpeed * cosTheta, -obstacleSpeed * sinTheta);
-  
-  if (leftPressed && rightPressed) {
-    if (upPressed) obstacleVel = new Vector2(0, -obstacleSpeed);
-    else if (downPressed) obstacleVel = new Vector2(0, obstacleSpeed);
-    else obstacleVel = new Vector2(0, 0);
-  }
-  if (upPressed && downPressed) {
-    if (leftPressed) obstacleVel = new Vector2( - obstacleSpeed, 0);
-    else if (rightPressed) obstacleVel = new Vector2(obstacleSpeed, 0);
-    else obstacleVel = new Vector2(0, 0);
-  }
-  
-  if (upPressed && downPressed && leftPressed && rightPressed) obstacleVel = new Vector2(0, 0);
+  Vector2 obstacleVel = obstacleDir.times(obstacleSpeed);
   
   rootM.x += obstacleVel.x * dt;
   rootM.y += obstacleVel.y * dt;
   setLeftRightRoot();
+  lastDirection = obstacleDir; //for crawling logic
 }
 
 boolean leftPressed, rightPressed, upPressed, downPressed, shiftPressed;
@@ -201,6 +232,9 @@ void keyPressed() {
     } else {
       chainChoice++;
     }
+  }
+  if (keyCode == 32) { //space.
+    crawling = !crawling; //toggle crawling.
   }
 }
 
