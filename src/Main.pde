@@ -131,7 +131,6 @@ void switchLinks() {
 void crawlingBehavior() {
   for (int i = 0; i < chains.size(); i++){
     Chain curChain = chains.get(i);
-    //println(
     Vector2 endEffectorPosition = curChain.startPos.get(curChain.startPos.size() - 1);
     //println("distance from goal" + curChain.name + (endEffectorPosition.distanceTo(goals.get(i))));
     if (endEffectorPosition.distanceTo(goals.get(i)) > crawlTolerance){ //the goal of this chain is too far for the end effector. Repositioning goal.
@@ -140,7 +139,6 @@ void crawlingBehavior() {
       if (lastDirection.length() != 0){
         //println("THIS");
         //Vector2 randomGoalPos = lastDirection.times(curChain.getTotalLength()).plus(randomPointInCircle(goalRandomization));
-        //Vector2 randomGoalPos = (lastDirection.plus(new Vector2(sqrt(random(-goalRandomization,goalRandomization)), sqrt(random(-goalRandomization,goalRandomization))))).normalized();
         //goals.set(i, chainRoot.plus(randomGoalPos));
         goals.set(i, chainRoot.plus(lastDirection.times(curChain.getTotalLength())));
       } else {
