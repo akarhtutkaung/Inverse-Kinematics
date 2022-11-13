@@ -39,7 +39,7 @@ public abstract class Chain {
   }
   
   public float getTotalLength(){
-    println("length size" + lengths.size());
+    //println("length size" + lengths.size());
     float sum = 0;
     for (float length : lengths){
       sum += length;

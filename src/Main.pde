@@ -33,9 +33,9 @@ int chainChoice = 0; // 0: LT, 1: RT, 2: LB, 3: RB
 
 //crawling variables
 boolean crawling = false; //if set to true, the roots will automatically shift based on reach.
-float crawlTolerance = 0.1f;//distance before goal is set to new root.
+float crawlTolerance = 60f;//distance before goal is set to new root.
 Vector2 lastDirection; //used to determine where to reposition goal.
-float goalRadndomization = 0.1f;//when relocating goals for crawling, goal is deviated slightly.
+float goalRandomization = 1f;//when relocating goals for crawling, goal is deviated slightly.
 
 void setup() {
   //size(649,480);
@@ -133,19 +133,27 @@ void crawlingBehavior() {
     Chain curChain = chains.get(i);
     //println(
     Vector2 endEffectorPosition = curChain.startPos.get(curChain.startPos.size() - 1);
-    println("distance from goal" + curChain.name + (endEffectorPosition.distanceTo(goals.get(i))));
-    if (endEffectorPosition.distanceTo(goals.get(i)) > crawlTolerance + curChain.getTotalLength()){ //the goal of this chain is too far for the end effector. Repositioning goal.
+    //println("distance from goal" + curChain.name + (endEffectorPosition.distanceTo(goals.get(i))));
+    if (endEffectorPosition.distanceTo(goals.get(i)) > crawlTolerance){ //the goal of this chain is too far for the end effector. Repositioning goal.
       Vector2 chainRoot = curChain.startPos.get(0);
-      println(lastDirection);
-      if (lastDirection.x != 0 & lastDirection.y != 0){
-        Vector2 randomGoalPos = (lastDirection.plus(new Vector2(random(-0.1,0.1), random(-0.1,0.1)))).normalized();
-        goals.set(i, chainRoot.plus(randomGoalPos.times(curChain.getTotalLength() - crawlTolerance)));
-        //goals.set(i, chainRoot.plus(lastDirection.times(curChain.getTotalLength() - crawlTolerance)));
+      //println(lastDirection);
+      if (lastDirection.length() != 0){
+        //println("THIS");
+        //Vector2 randomGoalPos = lastDirection.times(curChain.getTotalLength()).plus(randomPointInCircle(goalRandomization));
+        //Vector2 randomGoalPos = (lastDirection.plus(new Vector2(sqrt(random(-goalRandomization,goalRandomization)), sqrt(random(-goalRandomization,goalRandomization))))).normalized();
+        //goals.set(i, chainRoot.plus(randomGoalPos));
+        goals.set(i, chainRoot.plus(lastDirection.times(curChain.getTotalLength())));
       } else {
-        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).times(curChain.getTotalLength() - crawlTolerance)));
+        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).times(curChain.getTotalLength())));
       }
     }
   }
+}
+
+private Vector2 randomPointInCircle(float inRadius){
+  float radius = inRadius * sqrt(random(0,1));
+  float theta = sqrt(random(0f, (float) Math.PI * 2));
+  return new Vector2(radius * cos(theta), radius * sin(theta));
 }
 
 void draw() {
