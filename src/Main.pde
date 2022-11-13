@@ -1,7 +1,9 @@
 /**
 *  Guide: 
-*   Press TAB to toggle between limbs.
-*   Press SPACE to toggle between crawling
+*   Press TAB to iterate through limbs to set goals.
+*   Press 1-9 to choose specifically which limb to move (order determined by order of chain/goals added to chains/goals in setup)
+*   Press SPACE to toggle between crawling and manually setting limb goals.
+*   
 */
 
 import java.util.ArrayList;
@@ -44,10 +46,10 @@ Vector2 lastDirection; //Keeps track of movement to determine where to repositio
 float goalRandomization = (float) Math.PI/2;//when relocating goals for crawling, goal is deviated slightly.
 
 void setup() {
-  //size(649,480);
   size(1289, 720); 
   surface.setTitle("Inverse Kinematics [CSCI 5611 Example]");
   
+  //left top
   ArrayList<Float> lengthLT = new ArrayList<Float>();
   ArrayList<Float> rotateLT = new ArrayList<Float>();
   lengthLT.add(upperArmLength);
@@ -59,7 +61,10 @@ void setup() {
   Chain chainLT = new CCD(lengthLT, rotateLT, rootLT, "LT");
   chainLT.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainLT);
+  Vector2 leftGoalTop = new Vector2(0, rootM.y + topArmYOffset);
+  goals.add(leftGoalTop);
   
+  //right top
   ArrayList<Float> lengthRT = new ArrayList<Float>();
   ArrayList<Float> rotateRT = new ArrayList<Float>();
   lengthRT.add(upperArmLength);
@@ -71,8 +76,10 @@ void setup() {
   Chain chainRT = new FABRIK(lengthRT, rotateRT, rootRT, "RT");
   chainRT.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRT);
+  Vector2 rightGoalTop = new Vector2(width, rootM.y + topArmYOffset);
+  goals.add(rightGoalTop);
   
-    
+  //left bottom
   ArrayList<Float> lengthLB = new ArrayList<Float>();
   ArrayList<Float> rotateLB = new ArrayList<Float>();
   lengthLB.add(upperArmLength);
@@ -85,7 +92,10 @@ void setup() {
   chainLB.setJointLimit(2, (float)Math.PI/2);
   chainLB.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainLB);
+  Vector2 leftGoalBot = new Vector2(rootM.x, height);
+  goals.add(leftGoalBot);
   
+  //right bottom
   ArrayList<Float> lengthRB = new ArrayList<Float>();
   ArrayList<Float> rotateRB = new ArrayList<Float>();
   lengthRB.add(upperArmLength);
@@ -98,19 +108,9 @@ void setup() {
   chainRB.setJointLimit(2, (float)Math.PI/2);
   chainRB.setJointLimit(3, (float)Math.PI/2);
   chains.add(chainRB);
-
-
-
-  //set up goal array.
-  //println(rootM);
-  Vector2 leftGoalTop = new Vector2(0, rootM.y + topArmYOffset);
-  Vector2 rightGoalTop = new Vector2(width, rootM.y + topArmYOffset);
-  Vector2 leftGoalBot = new Vector2(rootM.x, height);
   Vector2 rightGoalBot = new Vector2(rootM.x + rightArmXOffset, height);
-  goals.add(leftGoalTop);
-  goals.add(rightGoalTop);
-  goals.add(leftGoalBot);
   goals.add(rightGoalBot);
+
   //for (Vector2 goal : goals) println(goal);
 }
 
@@ -119,6 +119,10 @@ void updateChainRoots() {
   chains.get(1).setRoot(rootRT);
   chains.get(2).setRoot(rootLB);
   chains.get(3).setRoot(rootRB);
+  //chains.get(0).setRoot(new Vector2(rootM.x, rootM.y + topArmYOffset)); //LT
+  //chains.get(1).setRoot(new Vector2(rootM.x, rootM.y + botArmYOffset)); //LB
+  //chains.get(2).setRoot(new Vector2(rootM.x + rightArmXOffset, rootM.y + topArmYOffset)); //RT
+  //chains.get(3).setRoot(new Vector2(rootM.x + rightArmXOffset, rootM.y + botArmYOffset)); //RB
 }
 
 void setLeftRightRoot() {
@@ -142,9 +146,9 @@ void crawlingBehavior() {
       Vector2 chainRoot = curChain.startPos.get(0);
       if (lastDirection.length() != 0){ //If movement caused the breakaway.
         Vector2 deviated = rotateRandom((float) Math.PI/2, lastDirection);
-        goals.set(i, chainRoot.plus(deviated.times(curChain.getTotalLength())));
+        goals.set(i, chainRoot.plus(deviated.times(curChain.getTotalLength() - crawlTolerance/2)));
       } else { //no movement caused the brakeaway (likely in the beginning.)
-        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).normalized().times(curChain.getTotalLength())));
+        goals.set(i, chainRoot.plus(new Vector2(random(-1,1), random(-1,1)).normalized().times(curChain.getTotalLength() - crawlTolerance/2)));
       }
     }
   }
@@ -241,6 +245,15 @@ void keyPressed() {
   }
   if (keyCode == 32) { //space.
     crawling = !crawling; //toggle crawling.
+  }
+  if (keyCode >= 49 && keyCode <= 57) { //1-9. Select limb manually.
+    int num = keyCode - 49; //-49 because zero indexing
+    if (num < chains.size()){
+      chainChoice = num;
+      println("Moving chain: " + chains.get(chainChoice).name);
+    } else {
+      println("This limb does not exist!");
+    }
   }
 }
 
