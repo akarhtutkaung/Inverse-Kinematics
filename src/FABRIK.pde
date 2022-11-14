@@ -2,7 +2,7 @@ public class FABRIK extends Chain {
   private ArrayList<Vector2> prevStartPos;
   private float totallengths = 0;
 
-  FABRIK(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root) {
+  FABRIK(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root, String name) {
     jointLimits = new ArrayList<Float>();
     startPos = new ArrayList<Vector2>();
     prevStartPos = new ArrayList<Vector2>();
@@ -19,6 +19,7 @@ public class FABRIK extends Chain {
     this.rotates = rotates;
     numLinks = lengths.size();
     fk();
+    this.name = name;
   }
 
   private void fabrikBackward(Vector2 goal){
@@ -41,20 +42,21 @@ public class FABRIK extends Chain {
     }    
   }
 
+//Note: removed reiterations to make the arm slide more smoothly.
   public void solve(Vector2 goal) {
-    int count = 0;
-    while(true){
+    //int count = 0;
+    //while(true){
       for(int i=0; i<startPos.size(); i++){
         prevStartPos.set(i, new Vector2(startPos.get(i).x, startPos.get(i).y));
       }
       fabrikBackward(goal);
       fabrikForward(goal);
-      count++;
-      if(count > 10){
-        break;
-      }
+      //count++;
+      //if(count > 10){
+      //  break;
+      //}
       calculateWorldRotate();
-    }
+    //}
   }
 
   private void calculateWorldRotate(){

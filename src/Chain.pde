@@ -7,6 +7,7 @@ public abstract class Chain {
   protected ArrayList<Float> lengths;
   protected ArrayList<Float> rotates;
   protected int numLinks;
+  protected String name; //for debugging.
 
   public abstract void solve(Vector2 goal);
   public abstract float getRotate(int link);
@@ -35,5 +36,16 @@ public abstract class Chain {
   public void setRoot(Vector2 root){
     this.root = root;
     startPos.set(0, root);
+  }
+  
+  public float getTotalLength(){
+    //println("length size" + lengths.size());
+    float sum = 0;
+    for (float length : lengths){
+      sum += length;
+    }
+    //println(sum);
+    return sum;
+    
   }
 }
