@@ -1,5 +1,5 @@
 public class CCD extends Chain {
-  CCD(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root) {
+  CCD(ArrayList<Float> lengths, ArrayList<Float> rotates, Vector2 root, String name) {
     jointLimits = new ArrayList<Float>();
     startPos = new ArrayList<Vector2>();
     startPos.add(root);
@@ -12,6 +12,7 @@ public class CCD extends Chain {
     this.rotates = rotates;
     numLinks = lengths.size();
     fk();
+    this.name = name;
   }
 
   public void solve(Vector2 goal) {
