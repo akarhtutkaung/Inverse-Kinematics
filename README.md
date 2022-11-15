@@ -70,5 +70,5 @@ https://user-images.githubusercontent.com/76828992/201560583-a4931df2-b862-4538-
 
 #### Which is the better IK solver?
 - It mostly depends, but CCD seems to be more practical overall.
-  - The one con that FABRIK has is unfortunately very significant: difficult joint constraints. It is rare to see a use of IK that does not require the use
+  - The one con that FABRIK has is unfortunately very significant: difficult joint constraints. It is rare to see a use of IK that does not require the use of joint constraints.
   - Although using CCD can be more complex in higher dimensions, the complexity comes from simply using a different rotation paradigm. Solving joint limits for this is significantly easier than trying to implement joint limits in an algorithm that 'ignores' angles in its calculations (FABRIK).
