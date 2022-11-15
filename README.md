@@ -50,6 +50,9 @@ https://user-images.githubusercontent.com/76828992/201560583-a4931df2-b862-4538-
     - **CONS**:
       - It is simple to implement only in 2D. In 3D, where rotations are represented with Quaternions and/or matrices than Euler angles, the math involved becomes more complex.
       - In our implementation, the arm does not 'instantly' move to its optimized position.
+<p align="center">
+  <img src="https://ars.els-cdn.com/content/image/1-s2.0-S1524070311000178-gr1.jpg" alt="ccd_steps" height="50%"/>
+</p>
   - **FABRIK (Forward And Backward Reaching Inverse Kinematics):** An alternative IK method that primarily computes the positions of each joint to reach a goal.
     - The algorithm begins by moving the end effector directly to the goal. After this, it will pull the next joint up to the arm closer to the goal such that the distance between this joint and the end effector is preserved.
     - Then, the algorithm moves up the limb to the next joint, and moves it closer to the joint that was moved on the last step to preserve the length between them,
@@ -61,6 +64,9 @@ https://user-images.githubusercontent.com/76828992/201560583-a4931df2-b862-4538-
     - **CONS**:
       - As the algorithm ignores the angles of each joint, implementing joint angle limits is significantly more complex. We were not able to implement a working joint limit unfortunately.
 
+<p align="center">
+  <img src="http://what-when-how.com/wp-content/uploads/2012/07/tmpc2f9393.png" alt="fabrik_steps" width="40%"/>
+</p>
 
 #### Which is the better IK solver?
 - It mostly depends, but CCD seems to be more practical overall.
